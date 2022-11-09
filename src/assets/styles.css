@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Imports */
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+/* Global Styling */
+* {
+  box-sizing: border-box;
+  font-family: "Space Mono";
+}
+
+/* Dark Theme */
+body {
+  background-color: #101010;
+  color: #fff;
+}
+
+/* Components */
+.bg-primary {
+  background-color: #8bc6ec;
+  background-image: linear-gradient(135deg, #8bc6ec 0%, #9599e2 100%);
+}
+
+.bg-shadow-l {
+  /* Add inner shadow from left for depth */
+  box-shadow: inset 7px 0 9px -7px rgba(0, 0, 0, 0.4);
+}
+
+/* Animations */
+.blink-animation {
+  animation: blink 1.5s steps(5, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Wallet Button */
+.swv-button-trigger {
+  background: #8bc6ec;
+}
+
+.swv-button-trigger:hover {
+  background: #8bc0ec !important;
+}
