@@ -20,5 +20,13 @@
 </template>
 
 <script setup lang="ts">
-import { WalletMultiButton } from "solana-wallets-vue";
+import { useWallet, WalletMultiButton } from "solana-wallets-vue";
+import { watch } from "vue";
+import { useRouter } from "vue-router";
+
+const { publicKey } = useWallet();
+const router = useRouter();
+
+// Redirect to dashboard if logged in
+watch(publicKey, (pubkey) => pubkey && router.push("/"));
 </script>

@@ -7,6 +7,8 @@ import {
   SlopeWalletAdapter,
   SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
+import mdiVue from "mdi-vue/v3";
+import * as mdijs from "@mdi/js";
 
 import "solana-wallets-vue/styles.css";
 
@@ -29,5 +31,8 @@ const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 app.use(SolanaWallets, walletOptions);
+app.use(mdiVue, {
+  icons: mdijs,
+});
 
 app.mount("#app");

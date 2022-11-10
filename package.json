@@ -10,7 +10,9 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@mdi/js": "^7.0.96",
     "@solana/wallet-adapter-wallets": "^0.19.5",
+    "mdi-vue": "^3.0.13",
     "pinia": "^2.0.23",
     "solana-wallets-vue": "^0.5.2",
     "vue": "^3.2.41",
