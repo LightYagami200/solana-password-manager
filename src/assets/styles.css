@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Imports */
-@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
-
 /* Global Styling */
 * {
   box-sizing: border-box;
@@ -36,6 +33,21 @@ body {
 
 .bg-shadow-r {
   box-shadow: inset -7px 0 9px -7px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary {
+  background-color: #8bc6ec;
+  background-image: linear-gradient(135deg, #8bc6ec 0%, #9599e2 100%);
+  box-shadow: 0 2px 12px 0 rgba(139, 198, 236, 0.4);
+  @apply flex px-4 py-2 rounded-lg justify-center items-center transition-shadow;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 2px 8px 0 rgba(139, 198, 236, 0.4);
+}
+
+.btn-primary:active {
+  box-shadow: 0 2px 4px 0 rgba(139, 198, 236, 0.4);
 }
 
 /* Animations */
