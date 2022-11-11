@@ -20,7 +20,7 @@
     <article class="p-8 w-full">
       <div class="flex justify-between w-full">
         <h2 class="text-4xl text-primary">Passwords</h2>
-        <button class="uppercase btn-primary">
+        <button class="uppercase btn-primary" @click="addPassword.show = true">
           <mdicon name="plus" class="mr-2" /> Add New
         </button>
       </div>
@@ -99,6 +99,41 @@
       </div>
     </article>
   </main>
+
+  <!-- Add new Password -->
+  <modal
+    v-model="addPassword.show"
+    @confirm="confirmAddPassword"
+    @cancel="closeAddPassword"
+  >
+    <template v-slot:title>Add New Password</template>
+    <!-- 3 inputs for each of the add password fields, dark mode, tailwindcss, minimalistic -->
+    <div class="flex flex-col">
+      <label class="mt-4">Website</label>
+      <input
+        type="text"
+        class="input-primary"
+        v-model="addPassword.website"
+        placeholder="Website"
+      />
+
+      <label class="mt-4">Login</label>
+      <input
+        type="text"
+        class="input-primary"
+        v-model="addPassword.login"
+        placeholder="Login"
+      />
+
+      <label class="mt-4">Password</label>
+      <input
+        type="text"
+        class="input-primary"
+        v-model="addPassword.password"
+        placeholder="Password"
+      />
+    </div>
+  </modal>
 </template>
 
 <script setup lang="ts">
@@ -106,11 +141,19 @@ import { Password } from "@/services/Password";
 import { useWallet } from "solana-wallets-vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import Modal from "@/components/SimpleModal.vue";
 
 const { disconnect } = useWallet();
 const router = useRouter();
 
 const items = ref<Password[]>([]);
+
+const addPassword = ref({
+  show: false,
+  website: "",
+  login: "",
+  password: "",
+});
 
 async function load() {
   // Sleep for 1 second to simulate loading
@@ -129,6 +172,18 @@ async function copyLogin(login: string) {
 
 async function copyPassword(password: string) {
   await navigator.clipboard.writeText(password);
+}
+
+async function closeAddPassword() {
+  addPassword.value.show = false;
+  addPassword.value.website = "";
+  addPassword.value.login = "";
+  addPassword.value.password = "";
+}
+
+async function confirmAddPassword() {
+  console.log("confirm");
+  closeAddPassword();
 }
 
 async function logout() {

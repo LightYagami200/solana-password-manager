@@ -35,6 +35,6 @@ app.use(SolanaWallets, walletOptions);
 app.use(mdiVue, {
   icons: mdijs,
 });
-App.use(vfmPlugin);
+app.use(vfmPlugin);
 
 app.mount("#app");

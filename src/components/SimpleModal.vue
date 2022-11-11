@@ -11,16 +11,11 @@
     <div class="flex-grow overflow-y-auto">
       <slot :params="params"></slot>
     </div>
-    <div class="flex-shrink-0 flex justify-center items-center pt-4">
-      <v-button class="vfm-btn" @click="$emit('confirm', close)"
-        >confirm</v-button
-      >
-      <v-button class="vfm-btn" @click="$emit('cancel', close)"
-        >cancel</v-button
-      >
+    <div class="flex-shrink-0 flex justify-end items-center pt-4">
+      <button class="uppercase" @click="$emit('cancel', close)">cancel</button>
+      <button class="ml-4 uppercase" @click="$emit('confirm', close)">
+        confirm
+      </button>
     </div>
-    <button class="absolute top-0 right-0 mt-2 mr-2" @click="close">
-      <mdi-close></mdi-close>
-    </button>
   </vue-final-modal>
 </template>

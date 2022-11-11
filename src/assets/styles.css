@@ -50,6 +50,10 @@ body {
   box-shadow: 0 2px 4px 0 rgba(139, 198, 236, 0.4);
 }
 
+.input-primary {
+  @apply bg-gray-800 outline-none rounded-sm px-2 py-2;
+}
+
 /* Animations */
 .blink-animation {
   animation: blink 1.5s steps(5, start) infinite;
