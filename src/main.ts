@@ -9,6 +9,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import mdiVue from "mdi-vue/v3";
 import * as mdijs from "@mdi/js";
+import { vfmPlugin } from "vue-final-modal";
 
 import "solana-wallets-vue/styles.css";
 
@@ -34,5 +35,6 @@ app.use(SolanaWallets, walletOptions);
 app.use(mdiVue, {
   icons: mdijs,
 });
+App.use(vfmPlugin);
 
 app.mount("#app");

@@ -30,7 +30,7 @@
           <thead class="bg-black bg-opacity-80 rounded-t-lg h-16">
             <tr class="rounded-t-lg">
               <th class="px-4 py-2 text-left rounded-tl-lg">Website</th>
-              <th class="px-4 py-2 text-left">Username</th>
+              <th class="px-4 py-2 text-left">Login</th>
               <th class="px-4 py-2 text-left">Password</th>
               <th class="px-4 py-2 text-left rounded-tr-lg">Actions</th>
             </tr>
@@ -62,6 +62,9 @@
                 }"
               >
                 {{ item.login }}
+                <button class="ml-2" @click="copyLogin(item.login)">
+                  <mdicon name="content-copy" />
+                </button>
               </td>
               <td
                 class="px-4 py-2 bg-black"
@@ -71,6 +74,9 @@
                 }"
               >
                 ••••••••
+                <button class="ml-2" @click="copyPassword(item.password)">
+                  <mdicon name="content-copy" />
+                </button>
               </td>
               <td
                 class="px-4 py-2 bg-black"
@@ -116,6 +122,14 @@ async function load() {
 }
 
 load();
+
+async function copyLogin(login: string) {
+  await navigator.clipboard.writeText(login);
+}
+
+async function copyPassword(password: string) {
+  await navigator.clipboard.writeText(password);
+}
 
 async function logout() {
   await disconnect();
