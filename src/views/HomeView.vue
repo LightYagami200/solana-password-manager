@@ -142,8 +142,18 @@ import { useWallet } from "solana-wallets-vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import Modal from "@/components/SimpleModal.vue";
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 
-const { disconnect } = useWallet();
+const programId = new PublicKey("9KRFR7ve13fWsh7yp9bBjaaGx3xKA1vUBPoHYb8kMSNs");
+const connection = new Connection("http://localhost:8899", "confirmed");
+
+const { disconnect, publicKey, sendTransaction } = useWallet();
 const router = useRouter();
 
 const items = ref<Password[]>([]);
@@ -183,6 +193,65 @@ async function closeAddPassword() {
 
 async function confirmAddPassword() {
   console.log("confirm");
+
+  if (
+    !addPassword.value.website ||
+    !addPassword.value.login ||
+    !addPassword.value.password ||
+    !publicKey.value
+  ) {
+    // TODO: Add toasts
+    return;
+  }
+
+  const password = new Password(
+    addPassword.value.website,
+    addPassword.value.login,
+    addPassword.value.password
+  );
+
+  const buffer = password.serialize(0);
+
+  const [pda] = await PublicKey.findProgramAddress(
+    // eslint-disable-next-line no-undef
+    [publicKey.value.toBuffer(), Buffer.from(password.id)],
+    programId
+  );
+
+  const tx = new Transaction().add(
+    new TransactionInstruction({
+      programId,
+      keys: [
+        {
+          pubkey: publicKey.value,
+          isSigner: true,
+          isWritable: false,
+        },
+        {
+          pubkey: pda,
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: SystemProgram.programId,
+          isSigner: false,
+          isWritable: false,
+        },
+      ],
+      data: buffer,
+    })
+  );
+
+  try {
+    const sig = await sendTransaction(tx, connection);
+
+    console.log(
+      `Explorer: https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`
+    );
+  } catch (e) {
+    console.log({ TX_ERROR: e });
+  }
+
   closeAddPassword();
 }
 
