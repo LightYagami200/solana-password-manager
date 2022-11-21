@@ -135,8 +135,30 @@
         <div
           class="w-1/3 bg-primary bg-shadow-l flex flex-col justify-center items-center"
         >
-          <h5 class="mb-4">Login with your wallet</h5>
-          <wallet-multi-button dark></wallet-multi-button>
+          <h5 class="mb-4" v-if="!publicKey">Login with your wallet</h5>
+          <wallet-multi-button dark v-if="!publicKey"></wallet-multi-button>
+          <label class="mt-8 mb-2" for="password" v-if="publicKey">{{
+            store.encryptionKey ? "Enter your Password" : "Set a password"
+          }}</label>
+
+          <div class="flex items-center justify-center" v-if="publicKey">
+            <input
+              type="password"
+              id="password"
+              class="w-64 h-12 px-4 text-lg text-white placeholder-white rounded-l-lg focus:outline-none"
+              style="background: #8bc6ec"
+              placeholder="Password"
+              v-model="password"
+            />
+
+            <button
+              class="h-12 w-8 rounded-r-lg"
+              style="background: #8bc6ec"
+              @click="login"
+            >
+              <mdicon name="arrow-right" />
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -144,15 +166,90 @@
 </template>
 
 <script setup lang="ts">
+import { Config } from "@/services/Config";
+import { usePasswordsStore } from "@/stores/passwords";
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import { useWallet, WalletMultiButton } from "solana-wallets-vue";
-import { watch } from "vue";
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
-const { publicKey } = useWallet();
+const { publicKey, sendTransaction } = useWallet();
 const router = useRouter();
+const store = usePasswordsStore();
+
+const programId = new PublicKey("GYQa3k6nEb1xfTcw2QZbD3muWTDMdBPjEm15rcmtqudH");
+const connection = new Connection("http://localhost:8899", "confirmed");
+
+const password = ref("");
 
 // Redirect to dashboard if logged in
-watch(publicKey, (pubkey) => pubkey && router.push("/"));
+watch(publicKey, (pubkey) => pubkey && store.encryptionKey && router.push("/"));
+watch(publicKey, (pubkey) => pubkey && load());
+
+const load = async () => {
+  await store.fetchConfig();
+};
+
+const login = () => {
+  if (store.encryptionKey === password.value) router.push("/dashboard");
+  else if (store.encryptionKey) alert("Wrong password"); // Add toast
+  else setPassword();
+};
+
+const setPassword = async () => {
+  // -> Set encryption hash on solana
+  const [pda] = await PublicKey.findProgramAddress(
+    // eslint-disable-next-line no-undef
+    [publicKey.value!.toBuffer(), Buffer.from("config")],
+    programId
+  );
+
+  const config = new Config(password.value);
+
+  const buffer = config.serialize();
+
+  console.log({ buffer });
+
+  const tx = new Transaction().add(
+    new TransactionInstruction({
+      programId,
+      keys: [
+        {
+          pubkey: publicKey.value!,
+          isSigner: true,
+          isWritable: false,
+        },
+        {
+          pubkey: pda,
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: SystemProgram.programId,
+          isSigner: false,
+          isWritable: false,
+        },
+      ],
+      data: buffer,
+    })
+  );
+
+  try {
+    const sig = await sendTransaction(tx, connection);
+
+    console.log(
+      `Explorer: https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`
+    );
+  } catch (e) {
+    console.log({ TX_ERROR: e });
+  }
+};
 </script>
 
 <style scoped>

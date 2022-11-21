@@ -36,13 +36,17 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, i) in items" :key="`password:${i}`" class="h-12">
+            <tr
+              v-for="(item, i) in store.passwords"
+              :key="`password:${i}`"
+              class="h-12"
+            >
               <td
                 class="px-4 py-2 bg-black"
                 :class="{
                   'bg-opacity-90': i % 2 !== 0,
                   'bg-opacity-50': i % 2 === 0,
-                  'rounded-bl-lg': i === items.length - 1,
+                  'rounded-bl-lg': i === store.passwords.length - 1,
                 }"
               >
                 <div class="flex items-center">
@@ -83,7 +87,7 @@
                 :class="{
                   'bg-opacity-90': i % 2 !== 0,
                   'bg-opacity-50': i % 2 === 0,
-                  'rounded-br-lg': i === items.length - 1,
+                  'rounded-br-lg': i === store.passwords.length - 1,
                 }"
               >
                 <button class="mr-4">
@@ -149,14 +153,14 @@ import {
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
+import { usePasswordsStore } from "@/stores/passwords";
 
-const programId = new PublicKey("9KRFR7ve13fWsh7yp9bBjaaGx3xKA1vUBPoHYb8kMSNs");
+const programId = new PublicKey("GYQa3k6nEb1xfTcw2QZbD3muWTDMdBPjEm15rcmtqudH");
 const connection = new Connection("http://localhost:8899", "confirmed");
 
 const { disconnect, publicKey, sendTransaction } = useWallet();
 const router = useRouter();
-
-const items = ref<Password[]>([]);
+const store = usePasswordsStore();
 
 const addPassword = ref({
   show: false,
@@ -166,12 +170,7 @@ const addPassword = ref({
 });
 
 async function load() {
-  // Sleep for 1 second to simulate loading
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  items.value = Password.generateMock();
-
-  console.log(items.value);
+  store.fetchPasswords();
 }
 
 load();
