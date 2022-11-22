@@ -155,7 +155,7 @@ import {
 } from "@solana/web3.js";
 import { usePasswordsStore } from "@/stores/passwords";
 
-const programId = new PublicKey("GYQa3k6nEb1xfTcw2QZbD3muWTDMdBPjEm15rcmtqudH");
+const programId = new PublicKey("5b6mXCbxaknKnmpSjj8ioKX1HdgF6q6VmhSkvNzBJQEW");
 const connection = new Connection("http://localhost:8899", "confirmed");
 
 const { disconnect, publicKey, sendTransaction } = useWallet();

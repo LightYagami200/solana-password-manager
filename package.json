@@ -14,6 +14,7 @@
     "@project-serum/borsh": "^0.2.5",
     "@solana/wallet-adapter-wallets": "^0.19.5",
     "@types/uniqid": "^5.3.2",
+    "crypto-js": "^4.1.1",
     "mdi-vue": "^3.0.13",
     "pinia": "^2.0.23",
     "solana-wallets-vue": "^0.5.2",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.4",
+    "@types/crypto-js": "^4.1.1",
     "@types/node": "^16.11.68",
     "@vitejs/plugin-vue": "^3.1.2",
     "@vue/eslint-config-prettier": "^7.0.0",

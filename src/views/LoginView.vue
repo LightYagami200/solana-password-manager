@@ -127,10 +127,17 @@
     <header>
       <div class="flex justify-between h-screen">
         <div class="w-1/3 p-8 flex flex-col justify-center">
-          <h1 class="text-8xl font-bold">
-            Sol Vault<span class="blink-animation">|</span>
-          </h1>
-          <h3 class="text-xl">Password Manager based on Solana Blockchain</h3>
+          <div class="mt-auto">
+            <h1 class="text-8xl font-bold">
+              Sol Vault<span class="blink-animation">|</span>
+            </h1>
+            <h3 class="text-xl">Password Manager based on Solana Blockchain</h3>
+          </div>
+          <p class="self-end mt-auto">
+            Disclaimer: This is only intended for educational purposes. Although
+            all the data is encrypted with your password - It's still highly
+            discouraged to use this for storing sensitive data.
+          </p>
         </div>
         <div
           class="w-1/3 bg-primary bg-shadow-l flex flex-col justify-center items-center"
@@ -138,7 +145,7 @@
           <h5 class="mb-4" v-if="!publicKey">Login with your wallet</h5>
           <wallet-multi-button dark v-if="!publicKey"></wallet-multi-button>
           <label class="mt-8 mb-2" for="password" v-if="publicKey">{{
-            store.encryptionKey ? "Enter your Password" : "Set a password"
+            store.hash ? "Enter your Password" : "Set a password"
           }}</label>
 
           <div class="flex items-center justify-center" v-if="publicKey">
@@ -183,7 +190,7 @@ const { publicKey, sendTransaction } = useWallet();
 const router = useRouter();
 const store = usePasswordsStore();
 
-const programId = new PublicKey("GYQa3k6nEb1xfTcw2QZbD3muWTDMdBPjEm15rcmtqudH");
+const programId = new PublicKey("5b6mXCbxaknKnmpSjj8ioKX1HdgF6q6VmhSkvNzBJQEW");
 const connection = new Connection("http://localhost:8899", "confirmed");
 
 const password = ref("");
@@ -197,8 +204,9 @@ const load = async () => {
 };
 
 const login = () => {
-  if (store.encryptionKey === password.value) router.push("/dashboard");
-  else if (store.encryptionKey) alert("Wrong password"); // Add toast
+  if (store.hash && Config.decrypt(store.hash, password.value))
+    router.push("/dashboard");
+  else if (store.hash) alert("Wrong password"); // Add toast
   else setPassword();
 };
 
@@ -210,11 +218,11 @@ const setPassword = async () => {
     programId
   );
 
-  const config = new Config(password.value);
+  const hash = Config.encrypt("VALID", password.value);
+
+  const config = new Config(hash);
 
   const buffer = config.serialize();
-
-  console.log({ buffer });
 
   const tx = new Transaction().add(
     new TransactionInstruction({
@@ -242,6 +250,8 @@ const setPassword = async () => {
 
   try {
     const sig = await sendTransaction(tx, connection);
+
+    store.setEncryptionKey(password.value);
 
     console.log(
       `Explorer: https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`

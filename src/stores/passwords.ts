@@ -4,13 +4,14 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { defineStore } from "pinia";
 import { useWallet } from "solana-wallets-vue";
 
-const programId = new PublicKey("GYQa3k6nEb1xfTcw2QZbD3muWTDMdBPjEm15rcmtqudH");
+const programId = new PublicKey("5b6mXCbxaknKnmpSjj8ioKX1HdgF6q6VmhSkvNzBJQEW");
 const connection = new Connection("http://localhost:8899", "confirmed");
 
 export const usePasswordsStore = defineStore("passwords", {
   state: () => ({
-    encryptionKey: "",
+    hash: "",
     passwords: [] as Password[],
+    encryptionKey: "",
   }),
   actions: {
     async fetchPasswords() {
@@ -33,19 +34,14 @@ export const usePasswordsStore = defineStore("passwords", {
         programId
       );
 
-      console.log({ pda });
-
       const account = await connection.getAccountInfo(pda);
 
       const config = Config.deserialize(account?.data);
 
-      this.encryptionKey = config?.hash || "";
-
-      console.log({
-        config,
-        hash: config?.hash,
-        encryptionKey: this.encryptionKey,
-      });
+      this.hash = config?.hash || "";
+    },
+    async setEncryptionKey(encryptionKey: string) {
+      this.encryptionKey = encryptionKey;
     },
   },
 });

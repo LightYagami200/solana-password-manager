@@ -1,4 +1,5 @@
 import * as borsh from "@project-serum/borsh";
+import Crypto from "crypto-js";
 
 export class Config {
   hash: string;
@@ -42,5 +43,13 @@ export class Config {
       console.error({ DESERIALIZE_ERROR: error });
       return null;
     }
+  }
+
+  static encrypt(text: string, encryptionKey: string) {
+    return Crypto.AES.encrypt(text, encryptionKey).toString();
+  }
+
+  static decrypt(text: string, encryptionKey: string) {
+    return Crypto.AES.decrypt(text, encryptionKey).toString(Crypto.enc.Utf8);
   }
 }
