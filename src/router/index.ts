@@ -23,10 +23,12 @@ const router = createRouter({
 // Validation
 router.beforeEach((to) => {
   const { publicKey } = useWallet();
-  const { encryptionKey } = usePasswordsStore();
+  const store = usePasswordsStore();
+
+  console.log({ publicKey, encryptionKey: store.encryptionKey });
 
   // -> Make sure publicKey & encryption key is set
-  if (to.name === "Home" && (!publicKey.value || !encryptionKey))
+  if (to.name === "Home" && (!publicKey.value || !store.encryptionKey))
     return { name: "Login" };
 });
 

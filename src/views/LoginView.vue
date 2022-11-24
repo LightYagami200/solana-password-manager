@@ -190,7 +190,7 @@ const { publicKey, sendTransaction } = useWallet();
 const router = useRouter();
 const store = usePasswordsStore();
 
-const programId = new PublicKey("5b6mXCbxaknKnmpSjj8ioKX1HdgF6q6VmhSkvNzBJQEW");
+const programId = new PublicKey("7p9vFKTNp4DSnJSY4hMsZL3ij8uKT7vwYruprrutcRwE");
 const connection = new Connection("http://localhost:8899", "confirmed");
 
 const password = ref("");
@@ -204,9 +204,10 @@ const load = async () => {
 };
 
 const login = () => {
-  if (store.hash && Config.decrypt(store.hash, password.value))
-    router.push("/dashboard");
-  else if (store.hash) alert("Wrong password"); // Add toast
+  if (store.hash && Config.decrypt(store.hash, password.value)) {
+    store.setEncryptionKey(password.value);
+    router.push("/");
+  } else if (store.hash) alert("Wrong password"); // Add toast
   else setPassword();
 };
 
@@ -252,6 +253,8 @@ const setPassword = async () => {
     const sig = await sendTransaction(tx, connection);
 
     store.setEncryptionKey(password.value);
+
+    router.push("/");
 
     console.log(
       `Explorer: https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`

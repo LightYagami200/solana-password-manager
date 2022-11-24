@@ -35,7 +35,7 @@
               <th class="px-4 py-2 text-left rounded-tr-lg">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-if="store.passwords.length">
             <tr
               v-for="(item, i) in store.passwords"
               :key="`password:${i}`"
@@ -99,6 +99,16 @@
               </td>
             </tr>
           </tbody>
+          <tbody v-else>
+            <tr>
+              <td class="px-4 py-2 bg-black bg-opacity-50 rounded-bl-lg">
+                No passwords found
+              </td>
+              <td class="px-4 py-2 bg-black bg-opacity-50"></td>
+              <td class="px-4 py-2 bg-black bg-opacity-50"></td>
+              <td class="px-4 py-2 bg-black bg-opacity-50 rounded-br-lg"></td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </article>
@@ -155,7 +165,7 @@ import {
 } from "@solana/web3.js";
 import { usePasswordsStore } from "@/stores/passwords";
 
-const programId = new PublicKey("5b6mXCbxaknKnmpSjj8ioKX1HdgF6q6VmhSkvNzBJQEW");
+const programId = new PublicKey("7p9vFKTNp4DSnJSY4hMsZL3ij8uKT7vwYruprrutcRwE");
 const connection = new Connection("http://localhost:8899", "confirmed");
 
 const { disconnect, publicKey, sendTransaction } = useWallet();
@@ -206,10 +216,11 @@ async function confirmAddPassword() {
   const password = new Password(
     addPassword.value.website,
     addPassword.value.login,
-    addPassword.value.password
+    addPassword.value.password,
+    store.encryptionKey
   );
 
-  const buffer = password.serialize(0);
+  const buffer = password.serialize(1);
 
   const [pda] = await PublicKey.findProgramAddress(
     // eslint-disable-next-line no-undef

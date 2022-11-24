@@ -4,7 +4,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { defineStore } from "pinia";
 import { useWallet } from "solana-wallets-vue";
 
-const programId = new PublicKey("5b6mXCbxaknKnmpSjj8ioKX1HdgF6q6VmhSkvNzBJQEW");
+const programId = new PublicKey("7p9vFKTNp4DSnJSY4hMsZL3ij8uKT7vwYruprrutcRwE");
 const connection = new Connection("http://localhost:8899", "confirmed");
 
 export const usePasswordsStore = defineStore("passwords", {
@@ -18,10 +18,21 @@ export const usePasswordsStore = defineStore("passwords", {
       const { publicKey } = useWallet();
 
       // -> Fetch passwords from solana
-      const accounts = await connection.getProgramAccounts(programId);
+      const accounts = await connection.getProgramAccounts(programId, {
+        filters: [
+          {
+            memcmp: {
+              offset: 1,
+              bytes: publicKey.value!.toBase58(),
+            },
+          },
+        ],
+      });
 
       this.passwords = accounts
-        .map(({ account }) => Password.deserialize(account.data))
+        .map(({ account }) =>
+          Password.deserialize(account.data, this.encryptionKey)
+        )
         .filter((password) => password)
         .map((password) => password as Password);
     },

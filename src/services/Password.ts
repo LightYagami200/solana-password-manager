@@ -1,5 +1,6 @@
 import uniqid from "uniqid";
 import * as borsh from "@project-serum/borsh";
+import { Config } from "./Config";
 
 export class Password {
   id: string;
@@ -7,11 +8,24 @@ export class Password {
   login: string;
   password: string;
 
-  constructor(website: string, login: string, password: string, id?: string) {
+  constructor(
+    website: string,
+    login: string,
+    password: string,
+    encryptionKey: string,
+    id?: string,
+    decrypt = false
+  ) {
     this.id = id || uniqid.time();
-    this.website = website;
-    this.login = login;
-    this.password = password;
+    this.website = decrypt
+      ? Config.decrypt(website, encryptionKey)
+      : Config.encrypt(website, encryptionKey);
+    this.login = decrypt
+      ? Config.decrypt(login, encryptionKey)
+      : Config.encrypt(login, encryptionKey);
+    this.password = decrypt
+      ? Config.decrypt(password, encryptionKey)
+      : Config.encrypt(password, encryptionKey);
   }
 
   borshInstructionSchema = borsh.struct([
@@ -24,22 +38,12 @@ export class Password {
 
   static borshAccountSchema = borsh.struct([
     borsh.bool("initialized"),
+    borsh.publicKey("owner"),
     borsh.str("id"),
     borsh.str("website"),
     borsh.str("login"),
     borsh.str("password"),
   ]);
-
-  static generateMock(): Password[] {
-    return [
-      new Password("google.com", "user@gmail.com", "somepas$word123"),
-      new Password("github.com", "user@mail.com", "lorem#ipsum"),
-      new Password("facebook.com", "user@mail.com", "dolor$amet"),
-      new Password("twitter.com", "SomeUser", "consectetur@adipiscing"),
-      new Password("instagram.com", "user@anothermail.com", "elit#sed"),
-      new Password("linkedin.com", "user@anothermail.com", "do$eiusmod"),
-    ];
-  }
 
   serialize(instruction: number) {
     const buffer = Buffer.alloc(1000);
@@ -62,14 +66,16 @@ export class Password {
     return buffer.slice(0, this.borshInstructionSchema.getSpan(buffer));
   }
 
-  static deserialize(buffer?: Buffer) {
-    if (!buffer) return null;
+  static deserialize(buffer: Buffer, encryptionKey?: string) {
+    if (!buffer || !encryptionKey) return null;
 
     try {
       const { id, website, login, password } =
         this.borshAccountSchema.decode(buffer);
 
-      return new Password(website, login, password, id);
+      console.log({ id, website: Config.decrypt(website, encryptionKey) });
+
+      return new Password(website, login, password, encryptionKey, id, true);
     } catch (error) {
       console.error({ DESERIALIZE_ERROR: error });
       return null;
