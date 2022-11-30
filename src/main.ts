@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import SolanaWallets from "solana-wallets-vue";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import Toast from "vue-toastification";
 import {
   PhantomWalletAdapter,
   SlopeWalletAdapter,
@@ -12,6 +13,7 @@ import * as mdijs from "@mdi/js";
 import { vfmPlugin } from "vue-final-modal";
 
 import "solana-wallets-vue/styles.css";
+import "vue-toastification/dist/index.css";
 
 import App from "./App.vue";
 import router from "./router";
@@ -36,5 +38,6 @@ app.use(mdiVue, {
   icons: mdijs,
 });
 app.use(vfmPlugin);
+app.use(Toast);
 
 app.mount("#app");

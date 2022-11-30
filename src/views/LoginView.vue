@@ -166,6 +166,7 @@
               <mdicon name="arrow-right" />
             </button>
           </div>
+          <p class="mt-2">Make sure you're on <b>devnet</b></p>
         </div>
       </div>
     </header>
@@ -176,6 +177,7 @@
 import { Config } from "@/services/Config";
 import { usePasswordsStore } from "@/stores/passwords";
 import {
+  clusterApiUrl,
   Connection,
   PublicKey,
   SystemProgram,
@@ -185,13 +187,15 @@ import {
 import { useWallet, WalletMultiButton } from "solana-wallets-vue";
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 const { publicKey, sendTransaction } = useWallet();
 const router = useRouter();
 const store = usePasswordsStore();
+const toast = useToast();
 
-const programId = new PublicKey("7p9vFKTNp4DSnJSY4hMsZL3ij8uKT7vwYruprrutcRwE");
-const connection = new Connection("http://localhost:8899", "confirmed");
+const programId = new PublicKey("JAHurE5i7rjDizB8eJaVuRvQLPL8xZ7ctNghvMrPCzcT");
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 const password = ref("");
 
@@ -207,7 +211,7 @@ const login = () => {
   if (store.hash && Config.decrypt(store.hash, password.value)) {
     store.setEncryptionKey(password.value);
     router.push("/");
-  } else if (store.hash) alert("Wrong password"); // Add toast
+  } else if (store.hash) toast.error("Wrong password");
   else setPassword();
 };
 
@@ -252,12 +256,14 @@ const setPassword = async () => {
   try {
     const sig = await sendTransaction(tx, connection);
 
+    toast.success("Creating account...");
+
     store.setEncryptionKey(password.value);
 
     router.push("/");
 
     console.log(
-      `Explorer: https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`
+      `Explorer: https://explorer.solana.com/tx/${sig}?cluster=devnet`
     );
   } catch (e) {
     console.log({ TX_ERROR: e });

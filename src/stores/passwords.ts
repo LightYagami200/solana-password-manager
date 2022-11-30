@@ -1,11 +1,11 @@
 import { Config } from "@/services/Config";
 import { Password } from "@/services/Password";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 import { defineStore } from "pinia";
 import { useWallet } from "solana-wallets-vue";
 
-const programId = new PublicKey("7p9vFKTNp4DSnJSY4hMsZL3ij8uKT7vwYruprrutcRwE");
-const connection = new Connection("http://localhost:8899", "confirmed");
+const programId = new PublicKey("JAHurE5i7rjDizB8eJaVuRvQLPL8xZ7ctNghvMrPCzcT");
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 export const usePasswordsStore = defineStore("passwords", {
   state: () => ({

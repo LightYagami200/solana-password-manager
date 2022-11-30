@@ -48,11 +48,6 @@ export class Password {
   serialize(instruction: number) {
     const buffer = Buffer.alloc(1000);
 
-    console.log({
-      variant: instruction,
-      ...this,
-    });
-
     this.borshInstructionSchema.encode(
       {
         ...this,
@@ -60,8 +55,6 @@ export class Password {
       },
       buffer
     );
-
-    console.log({ buffer });
 
     return buffer.slice(0, this.borshInstructionSchema.getSpan(buffer));
   }
@@ -72,8 +65,6 @@ export class Password {
     try {
       const { id, website, login, password } =
         this.borshAccountSchema.decode(buffer);
-
-      console.log({ id, website: Config.decrypt(website, encryptionKey) });
 
       return new Password(website, login, password, encryptionKey, id, true);
     } catch (error) {

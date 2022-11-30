@@ -90,12 +90,12 @@
                   'rounded-br-lg': i === store.passwords.length - 1,
                 }"
               >
-                <button class="mr-4">
+                <button class="mr-4" @click="openEditPassword(item)">
                   <mdicon name="pencil" />
                 </button>
-                <button class="">
+                <!-- <button>
                   <mdicon name="delete" />
-                </button>
+                </button> -->
               </td>
             </tr>
           </tbody>
@@ -119,6 +119,7 @@
     v-model="addPassword.show"
     @confirm="confirmAddPassword"
     @cancel="closeAddPassword"
+    :loading="addPassword.loading"
   >
     <template v-slot:title>Add New Password</template>
     <!-- 3 inputs for each of the add password fields, dark mode, tailwindcss, minimalistic -->
@@ -148,6 +149,41 @@
       />
     </div>
   </modal>
+
+  <!-- Edit Password -->
+  <modal
+    v-model="editPassword.show"
+    @confirm="confirmEditPassword"
+    @cancel="closeEditPassword"
+  >
+    <template v-slot:title>Add New Password</template>
+    <!-- 3 inputs for each of the add password fields, dark mode, tailwindcss, minimalistic -->
+    <div class="flex flex-col">
+      <label class="mt-4">Website</label>
+      <input
+        type="text"
+        class="input-primary"
+        v-model="editPassword.website"
+        placeholder="Website"
+      />
+
+      <label class="mt-4">Login</label>
+      <input
+        type="text"
+        class="input-primary"
+        v-model="editPassword.login"
+        placeholder="Login"
+      />
+
+      <label class="mt-4">Password</label>
+      <input
+        type="text"
+        class="input-primary"
+        v-model="editPassword.password"
+        placeholder="Password"
+      />
+    </div>
+  </modal>
 </template>
 
 <script setup lang="ts">
@@ -157,6 +193,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import Modal from "@/components/SimpleModal.vue";
 import {
+  clusterApiUrl,
   Connection,
   PublicKey,
   SystemProgram,
@@ -164,19 +201,31 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { usePasswordsStore } from "@/stores/passwords";
+import { useToast } from "vue-toastification";
 
-const programId = new PublicKey("7p9vFKTNp4DSnJSY4hMsZL3ij8uKT7vwYruprrutcRwE");
-const connection = new Connection("http://localhost:8899", "confirmed");
+const programId = new PublicKey("JAHurE5i7rjDizB8eJaVuRvQLPL8xZ7ctNghvMrPCzcT");
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 const { disconnect, publicKey, sendTransaction } = useWallet();
 const router = useRouter();
 const store = usePasswordsStore();
+const toast = useToast();
 
 const addPassword = ref({
   show: false,
   website: "",
   login: "",
   password: "",
+  loading: false,
+});
+
+const editPassword = ref({
+  show: false,
+  website: "",
+  login: "",
+  password: "",
+  id: "",
+  loading: false,
 });
 
 async function load() {
@@ -193,6 +242,14 @@ async function copyPassword(password: string) {
   await navigator.clipboard.writeText(password);
 }
 
+async function openEditPassword(password: Password) {
+  editPassword.value.show = true;
+  editPassword.value.website = password.website;
+  editPassword.value.login = password.login;
+  editPassword.value.password = password.password;
+  editPassword.value.id = password.id;
+}
+
 async function closeAddPassword() {
   addPassword.value.show = false;
   addPassword.value.website = "";
@@ -200,18 +257,26 @@ async function closeAddPassword() {
   addPassword.value.password = "";
 }
 
-async function confirmAddPassword() {
-  console.log("confirm");
+async function closeEditPassword() {
+  editPassword.value.show = false;
+  editPassword.value.website = "";
+  editPassword.value.login = "";
+  editPassword.value.password = "";
+  editPassword.value.id = "";
+}
 
+async function confirmAddPassword() {
   if (
     !addPassword.value.website ||
     !addPassword.value.login ||
     !addPassword.value.password ||
     !publicKey.value
   ) {
-    // TODO: Add toasts
+    toast.error("Please fill all fields");
     return;
   }
+
+  addPassword.value.loading = true;
 
   const password = new Password(
     addPassword.value.website,
@@ -254,15 +319,111 @@ async function confirmAddPassword() {
 
   try {
     const sig = await sendTransaction(tx, connection);
+    const latestBlockHash = await connection.getLatestBlockhash();
 
     console.log(
-      `Explorer: https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`
+      `Explorer: https://explorer.solana.com/tx/${sig}?cluster=devnet`
     );
+
+    // Wait for confirmation
+    await connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: sig,
+    });
+
+    await store.fetchPasswords();
   } catch (e) {
     console.log({ TX_ERROR: e });
+    toast.error("Error adding password");
   }
 
+  addPassword.value.loading = false;
+
+  toast.success("Password added");
+
   closeAddPassword();
+}
+
+async function confirmEditPassword() {
+  if (
+    !editPassword.value.website ||
+    !editPassword.value.login ||
+    !editPassword.value.password ||
+    !publicKey.value
+  ) {
+    toast.error("Please fill all fields");
+    return;
+  }
+
+  editPassword.value.loading = true;
+
+  const password = new Password(
+    editPassword.value.website,
+    editPassword.value.login,
+    editPassword.value.password,
+    store.encryptionKey,
+    editPassword.value.id
+  );
+
+  const buffer = password.serialize(2);
+
+  const [pda] = await PublicKey.findProgramAddress(
+    // eslint-disable-next-line no-undef
+    [publicKey.value.toBuffer(), Buffer.from(password.id)],
+    programId
+  );
+
+  const tx = new Transaction().add(
+    new TransactionInstruction({
+      programId,
+      keys: [
+        {
+          pubkey: publicKey.value,
+          isSigner: true,
+          isWritable: false,
+        },
+        {
+          pubkey: pda,
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: SystemProgram.programId,
+          isSigner: false,
+          isWritable: false,
+        },
+      ],
+      data: buffer,
+    })
+  );
+
+  try {
+    const sig = await sendTransaction(tx, connection);
+    const latestBlockHash = await connection.getLatestBlockhash();
+
+    console.log(
+      `Explorer: https://explorer.solana.com/tx/${sig}?cluster=devnet`
+    );
+
+    // Wait for confirmation
+    await connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: sig,
+    });
+
+    await store.fetchPasswords();
+  } catch (e) {
+    console.log({ TX_ERROR: e });
+    toast.error("Error updating password");
+  }
+
+  editPassword.value.loading = false;
+
+  toast.success("Password updated");
+
+  closeEditPassword();
 }
 
 async function logout() {
